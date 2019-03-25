@@ -12,6 +12,7 @@ li {
     border: 1px solid #0000002e;
     margin-top: 1px;
     text-align: center;
+    cursor: pointer;
 }
 li:hover {
     background-color: #ff00007a;
