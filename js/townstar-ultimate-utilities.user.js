@@ -1,7 +1,7 @@
 // ==UserScript==
 // @name         Townstar ultimate utilities
 // @namespace    http://tampermonkey.net/
-// @version      0.1.3
+// @version      0.1.4
 // @updateURL    https://tzanou123.github.io/js/townstar-ultimate-utilities.user.js
 // @downloadURL    https://tzanou123.github.io/js/townstar-ultimate-utilities.user.js
 // @description  A script for the town star gala game with a lot of features like auto sell a powerfull rate monitor and more ... it come with a pretty and easy to use interfaces
@@ -36,12 +36,19 @@
         // {item: 'Salt', keepAmt: 0, sellMin: 0},
         // {item: 'Sugar', keepAmt: 0, sellMin: 10},
     ]
+    //Change the default production tracker frequency for money
+    // Must be day,hour or week value
+    // Otherwise the script will crash
+    let getMoneyRateFrequency = "day";
+    //Change the default production tracker frequency for point
+    // Must be day,hour or week value
+    // Otherwise the script will crash
+    let getPointRateFrequency = "day";
+
+
     const originalCraftedItems = craftedItems;
 
     const loader = document.createElement('div');
-
-    let getMoneyRate = "day";
-    let getPointRate = "day";
 
     loader.classList.add('loader');
     loader.classList.add('loader-bouncing');
@@ -142,6 +149,7 @@
             "width": "fit-content",
             "background": "#00000029",
             "padding": "10px",
+            "zIndex": "9999999",
         })
 
         let autoSellStatus = document.createElement('div');
@@ -427,7 +435,24 @@
             $(trackedItemElemProdRate).css({
                 "font-size": "12px",
                 "font-weight": "800",
-                "margin-bottom": "5px",
+                "margin-left": "20px",
+            });
+            let moreFromProdRate = document.createElement('span');
+            $(moreFromProdRate).addClass("moreFromProdRate")
+            $(moreFromProdRate).attr("data-name", item.item);
+            $(moreFromProdRate).css({
+                "padding-right": "10px",
+                "margin-left": "auto",
+                "color": "rgb(254 94 94 / 65%)",
+            })
+            $(moreFromProdRate).html('<i style="color:rgb(254 94 94 / 65%);" class="fa-solid fa-caret-down">')
+
+            $("body").on("mouseenter", ".moreFromProdRate i", function () {
+                $(this).css("color", "rgb(254 94 94)");
+            });
+
+            $("body").on("mouseleave", ".moreFromProdRate i", function () {
+                $(this).css("color", "rgb(254 94 94 / 65%)");
             });
 
             let timeChooseMoney = document.createElement('div');
@@ -447,8 +472,12 @@
 
             let hourChooseMoney = document.createElement('span');
             hourChooseMoney.innerHTML = '1h';
+            if (getMoneyRateFrequency == 'hour')
+                hourChooseMoney.classList.add('active');
             let hourChoosePoint = document.createElement('span');
             hourChoosePoint.innerHTML = '1h';
+            if (getPointRateFrequency == 'hour')
+                hourChooseMoney.classList.add('active');
 
             $(hourChooseMoney).click(function () {
                 item.moneyRatePicked = 'hour'
@@ -461,17 +490,24 @@
             })
 
             let dayChooseMoney = document.createElement('span');
-            dayChooseMoney.classList.add('active');
+            if (getMoneyRateFrequency == 'day')
+                dayChooseMoney.classList.add('active');
             dayChooseMoney.innerHTML = '24h';
             let dayChoosePoint = document.createElement('span');
-            dayChoosePoint.classList.add('active');
+            if (getPointRateFrequency == 'day')
+                dayChoosePoint.classList.add('active');
             dayChoosePoint.innerHTML = '24h';
 
 
 
             let weekChooseMoney = document.createElement('span');
             weekChooseMoney.innerHTML = '1w';
+            if (getMoneyRateFrequency == 'week')
+                weekChooseMoney.classList.add('active');
             let weekChoosePoint = document.createElement('span');
+            if (getPointRateFrequency == 'week')
+                weekChoosePoint.classList.add('active');
+
             weekChoosePoint.innerHTML = '1w';
 
             $(hourChooseMoney).click(function () {
@@ -532,31 +568,48 @@
             let trackedItemElemMoney = document.createElement('div');
             trackedItemElemMoney.id = 'tracked-item-money-' + item.item;
             trackedItemElemMoney.style = 'width: 75%;';
-            trackedItemElemMoney.innerHTML = '<span class="dynamic">money: $' + nFormatter(item.oneDayMoney, 2) + '</span>';
+            let properFrequencyMoney = getMoneyRateFrequency == 'hour' ? item.oneHourMoney : getMoneyRateFrequency == 'day' ? item.oneDayMoney : item.oneWeekMoney
+            trackedItemElemMoney.innerHTML = '<span class="dynamic">money: $' + nFormatter(properFrequencyMoney, 2) + '</span>';
             $(trackedItemElemMoney).css({
                 "display": "flex",
                 "flex-wrap": "wrap",
                 "align-items": "center",
                 "margin-bottom": "5px",
+                "display": "none",
             });
             $(trackedItemElemMoney).prepend(timeChooseMoney);
 
             let trackedItemElemPoint = document.createElement('div');
             trackedItemElemPoint.id = 'tracked-item-point-' + item.item;
             trackedItemElemPoint.style = 'width: 75%;';
-            trackedItemElemPoint.innerHTML = '<span class="dynamic">points: ' + nFormatter(item.oneDayPoint, 2) + "</span>";
+            let properFrequencyPoint = getPointRateFrequency == 'hour' ? item.oneHourPoint : getPointRateFrequency == 'day' ? item.oneDayPoint : item.oneWeekPoint
+            trackedItemElemPoint.innerHTML = '<span class="dynamic">points: ' + nFormatter(properFrequencyPoint, 2) + "</span>";
             $(trackedItemElemPoint).css({
                 "display": "flex",
                 "flex-wrap": "wrap",
                 "align-items": "center",
+                "display": "none",
             });
             $(trackedItemElemPoint).prepend(timeChoosePoint);
 
             $(itemList).append(trackedItemElem);
+            $(trackedItemElemH1).append(trackedItemElemProdRate);
+            $(trackedItemElemH1).append(moreFromProdRate);
             $(trackedItemElem).append(trackedItemElemH1);
-            $(trackedItemElem).append(trackedItemElemProdRate);
             $(trackedItemElem).append(trackedItemElemMoney);
             $(trackedItemElem).append(trackedItemElemPoint);
+
+            let isOpen = false
+            $(moreFromProdRate).click(function () {
+                $(trackedItemElemMoney).toggle("slide", { direction: "up" }, 300)
+                $(trackedItemElemPoint).toggle("slide", { direction: "up" }, 300)
+                if (isOpen) {
+                    $("#tracked-item-" + item.item + " .moreFromProdRate i").animateRotate(0);
+                } else {
+                    $("#tracked-item-" + item.item + " .moreFromProdRate i").animateRotate(-180);
+                }
+                isOpen = !isOpen
+            })
 
 
         }
@@ -584,8 +637,8 @@
                         oneHourPoint: 0,
                         oneDayPoint: 0,
                         oneWeekPoint: 0,
-                        moneyRatePicked: 'day',
-                        pointRatePicked: 'day',
+                        moneyRatePicked: getMoneyRateFrequency,
+                        pointRatePicked: getPointRateFrequency,
                         sold: currentItem.CityPrice,
                         point: currentItem.CityPoints
                     };
